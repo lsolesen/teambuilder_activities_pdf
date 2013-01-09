@@ -4,7 +4,7 @@
  */
 require_once dirname(__FILE__) . '/Base.php';
 
-class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
+class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
 
   protected $font = 'helvetica';
   protected $frontpage_font = 'helvetica';
@@ -15,19 +15,27 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
     $this->SetMargins(0, 0, 0);
     $this->AliasNbPages(); 
   }
-  
+
   public function addActivityPage($activity) {
     global $base_url;
     $this->AddPage();
 
     $title = "  " . $activity->title;
-    $description = strip_tags($activity->field_instruction[LANGUAGE_NONE][0]['value']);
+    $description = strip_tags($activity->body[LANGUAGE_NONE][0]['value']);
     $keywords = array();
     foreach ($activity->taxonomy_vocabulary_1 as $taxonomy) {
       $keywords[] = $taxonomy->name;
     }
-
+    $instruction = '<b>' . strip_tags($activity->field_instruction[LANGUAGE_NONE][0]['value']) . '</b>';
+    $debriefing = '<b>' . strip_tags($activity->field_debriefing[LANGUAGE_NONE][0]['value']) . '</b>';
     $url = $base_url. '/node/' . $activity->nid;
+
+    $where = strip_tags($activity->field_space[LANGUAGE_NONE][0]['value']);
+    $what = implode($keywords, ", ");
+    $who = strip_tags($activity->field_who[LANGUAGE_NONE][0]['value']);
+    $how_many = strip_tags($activity->field_groupsize[LANGUAGE_NONE][0]['value']);
+    $materials = strip_tags($activity->field_materials[LANGUAGE_NONE][0]['value']);
+    $duration = strip_tags($activity->field_time[LANGUAGE_NONE][0]['value']);
 
     $title_size = 30;
     $this->SetFont('Helvetica', 'B', $title_size);
@@ -106,7 +114,25 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
       }
     }
 
-    $this->MultiCell(0, 8, $description, 0, 'L', false, 1, '', '', true, 0, true);
+    $this->SetFillColor(200, 200, 200);
+    $this->SetFont('Helvetica', null, 7);
+
+    $information = 'Hvor? ' . $where . '
+Hvad? ' . $what . '
+Hvem? ' . $who . '
+Hvor mange? ' . $how_many . '
+Materialer? ' . $materials  . '
+Varighed? ' . $duration . '';
+    
+    $this->MultiCell($cell_width, 4, $information, 1, 'L', false);
+    $this->SetFont('Helvetica', null, 12);
+
+    $this->Ln(2);
+    $this->MultiCell($cell_width, 4, $description, 0, 'L', false, 1, '', '', true, 0, true);
+    $this->Ln(2);    
+    $this->MultiCell($cell_width, 4, $instruction, 0, 'L', false, 1, '', '', true, 0, true);
+    $this->Ln(2);    
+    $this->MultiCell($cell_width, 4, $debriefing, 0, 'L', false, 1, '', '', true, 0, true);
 
     $this->Image(dirname(__FILE__) . '/../vih_logo.jpg', 8, 261, 50, 0, '', 'http://vih.dk/');
     $this->Image(dirname(__FILE__) . '/../cc-by-sa_340x340.png', 190, 3, 17, 0, '');

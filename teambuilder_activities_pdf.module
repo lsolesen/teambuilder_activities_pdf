@@ -44,23 +44,21 @@ function teambuilder_activities_pdf_libraries_info() {
  */ 
 function teambuilder_activities_pdf_menu() {
   $items['node/%node/pdf'] = array(
-    'title' => 'A4 PDF',
+    'title' => 'Opgaveudskrift',
     'page callback' => 'exercise_pdf_portrait',
     'page arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => 'exercise_pdf_access',
     'access arguments' => array(1)
   );
-  /*
   $items['node/%node/pdf2'] = array(
-    'title' => 'A6 PDF',
+    'title' => 'Lærerudskrift',
     'page callback' => 'exercise_pdf_teacher',
     'page arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'access callback' => 'exercise_pdf_access',
     'access arguments' => array(1)
   );
-  */
   return $items;
 }
 
@@ -129,6 +127,15 @@ function teambuilder_activities_pdf_get_vocabulary_machinename_by_vid($vid) {
  * @return void
  */
 function exercise_pdf_teacher($node) {
+  global $base_url;
+  require_once libraries_get_path('tcpdf') . '/tcpdf.php';
+  require_once dirname(__FILE__) . '/includes/Teacher.php';
+  
+  $pdf = new Teambuilder_Pdf_Teacher();
+  $pdf->setBaseUrl($base_url);
+  $pdf->addActivityPage($node);
+  $pdf->Output();
+
 /*
     global $base_url;
     require_once libraries_get_path('tcpdf') . '/TCPDF-5.9.074/tcpdf/tcpdf.php';

@@ -83,5 +83,18 @@ abstract class Teambuilder_Pdf_Base extends TCPDF {
         
     return chart_copy($chart, 'my_chart_' . uniqid(), 'public://charts/');
   }
+  
+  protected function getPictureFilename($style_name, $uri) {
+    $dest = image_style_path($style_name, $uri);
+    if (!file_exists($dest)) {
+      $style = image_style_load($style_name);
+      image_style_create_derivative($style, $uri, $dest);
+    }
+    $picture_filename = drupal_realpath($dest);
+    if (!file_exists($picture_filename)) {
+      return FALSE;
+    }
+    return $picture_filename;
+  }
 }
 
