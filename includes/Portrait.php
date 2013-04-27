@@ -15,17 +15,20 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
     $this->SetMargins(0, 0, 0);
     $this->AliasNbPages(); 
   }
-  
+
   public function addActivityPage($activity) {
     global $base_url;
     $this->AddPage();
 
     $title = "  " . $activity->title;
     $description = strip_tags($activity->field_instruction[LANGUAGE_NONE][0]['value']);
+    
+    /*
     $keywords = array();
     foreach ($activity->taxonomy_vocabulary_1 as $taxonomy) {
       $keywords[] = $taxonomy->name;
     }
+    */
 
     $url = $base_url. '/node/' . $activity->nid;
 
@@ -40,39 +43,53 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
 
     $this->SetFont('Helvetica', 'B', $title_size);
     $this->SetTextColor(255, 255, 255);
-    $this->Cell(0, 50, $title, null, 2, 'L', true);
+    $this->Cell(0, 30, $title, null, 2, 'L', true);
     
     $this->SetLeftMargin(10);
     $this->SetRightMargin(10);
     $this->SetY(35);
     $this->SetFont('Helvetica', null, 10);
-    $this->MultiCell(0, 5, implode($keywords, ", "), 0, 'L');
+    // $this->MultiCell(0, 5, implode($keywords, ", "), 0, 'L');
 
     if (!empty($activity->field_image[LANGUAGE_NONE][0])) {
       $x = 10;
-      $y = 60;
+      $y = $this->GetY();
+      $new_y = $y;
       $width = 0;
       $spacing = 5;
       $count = 0;
       $picture_rows = 1;
       $presetname = 'activity';
+      $no_of_pics = count($activity->field_image[LANGUAGE_NONE]);
 
       foreach ($activity->field_image[LANGUAGE_NONE] as $image) {
         if ($picture_filename = $this->getPictureFilename($presetname, $image['uri'])) {
           $size = getimagesize($picture_filename);
           if ($size[0] < $size[1]) {
             $orientation = 'portrait';
-            $pic_width = 55;
-            $new_line = 80;
-            if ($count > 6) {
-              break;
+            if ($no_of_pics <= 2) {
+              $pic_width = 80;
+              $new_line = 125;
+            }
+            else {
+              $pic_width = 55;
+              $new_line = 80;
+              if ($count > 6) {
+                break;
+              }
             }
           } else {
             $orientation = 'landscape';
-            $pic_width = 80;
-            $new_line = 50;
-            if ($count > 4) {
-              break;
+            if ($no_of_pics == 1) {
+              $pic_width = 190;
+              $new_line = 130;
+            }
+            else {
+              $pic_width = 80;
+              $new_line = 50;
+              if ($count > 4) {
+                break;
+              }
             }
           }
           $width += $pic_width + $spacing;
@@ -81,30 +98,18 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
             $x = 10;
             $picture_rows++;
             $width = 0;
+            $new_y += $new_line;
           }
 
           $this->Image($picture_filename, $x, $y, $pic_width, 0, '');
           $x += $pic_width + $spacing;
-        }       
+        }
       }
+      $this->setY($new_y + $new_line);
     }
 
-    $this->SetFont('Helvetica', null, 17);
+    $this->SetFont('Helvetica', null, 14);
     $this->setTextColor(0, 0, 0);
-
-    if ($orientation == 'portrait') {
-      if ($picture_rows == 1) {
-        $this->setY(150);
-      } else {
-        $this->setY(230);
-      }
-    } else {
-      if ($picture_rows == 1) {
-        $this->setY(130);
-      } else {
-        $this->setY(200);
-      }
-    }
 
     $this->MultiCell(0, 8, $description, 0, 'L', false, 1, '', '', true, 0, true);
 

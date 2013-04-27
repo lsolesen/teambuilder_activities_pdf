@@ -48,7 +48,7 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
 
     $this->SetFont('Helvetica', 'B', $title_size);
     $this->SetTextColor(255, 255, 255);
-    $this->Cell(0, 50, $title, null, 2, 'L', true);
+    $this->Cell(0, 30, $title, null, 2, 'L', true);
     
     $this->SetLeftMargin(10);
     $this->SetRightMargin(10);
@@ -56,9 +56,11 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
     $this->SetFont('Helvetica', null, 10);
     $this->MultiCell(0, 5, implode($keywords, ", "), 0, 'L');
 
+    /*
     if (!empty($activity->field_image[LANGUAGE_NONE][0])) {
       $x = 10;
-      $y = 60;
+      $y = $this->GetY();
+      $new_y = $y;
       $width = 0;
       $spacing = 5;
       $count = 0;
@@ -77,8 +79,8 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
             }
           } else {
             $orientation = 'landscape';
-            $pic_width = 80;
-            $new_line = 50;
+            $pic_width = 90;
+            $new_line = 70;
             if ($count > 4) {
               break;
             }
@@ -89,30 +91,31 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
             $x = 10;
             $picture_rows++;
             $width = 0;
+            $new_y += $new_line;
           }
 
           $this->Image($picture_filename, $x, $y, $pic_width, 0, '');
           $x += $pic_width + $spacing;
         }       
       }
+      $this->SetY($new_y + $new_line);
+    }
+    */
+    
+    if (!empty($activity->field_image[LANGUAGE_NONE][0]['uri'])) {
+      $x = 10;
+      $y = $this->GetY();
+      $new_y = $y;
+      $presetname = 'activity_landscape';
+      $pic_width = 90;
+      if ($picture_filename = $this->getPictureFilename($presetname, $activity->field_image[LANGUAGE_NONE][0]['uri'])) {
+        $this->Image($picture_filename, $x, $y, $pic_width, 0, '');
+        $this->SetY($new_y + $new_line);
+      }
     }
 
     $this->SetFont('Helvetica', null, 17);
     $this->setTextColor(0, 0, 0);
-
-    if ($orientation == 'portrait') {
-      if ($picture_rows == 1) {
-        $this->setY(150);
-      } else {
-        $this->setY(230);
-      }
-    } else {
-      if ($picture_rows == 1) {
-        $this->setY(130);
-      } else {
-        $this->setY(200);
-      }
-    }
 
     $this->SetFillColor(200, 200, 200);
     $this->SetFont('Helvetica', null, 7);
@@ -124,7 +127,9 @@ Hvor mange? ' . $how_many . '
 Materialer? ' . $materials  . '
 Varighed? ' . $duration . '';
     
-    $this->MultiCell($cell_width, 4, $information, 1, 'L', false);
+    $this->SetY(40);
+    $this->SetX(105);
+    $this->MultiCell($cell_width, 60, $information, 1, 'L', false);
     $this->SetFont('Helvetica', null, 12);
 
     $this->Ln(2);
