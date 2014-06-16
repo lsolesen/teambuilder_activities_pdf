@@ -73,7 +73,7 @@ abstract class Teambuilder_Pdf_Base extends TCPDF {
    */
   protected function getBarcodePath($url, $height, $width) {
     $chart = array(
-      '#chart_id' => 'test_chart',
+      '#chart_id' => 'teambuilder_activity',
       '#type' => CHART_TYPE_QR,
       '#size' => chart_size(200, 200) 
     );
@@ -81,9 +81,9 @@ abstract class Teambuilder_Pdf_Base extends TCPDF {
     $chart['#data'][] = '';
     $chart['#labels'][] = $url;
         
-    return chart_copy($chart, 'my_chart_' . uniqid(), 'public://charts/');
+    return chart_copy($chart, 'teambuilder_activity_' . uniqid(), 'public://charts/');
   }
-  
+
   protected function getPictureFilename($style_name, $uri) {
     $dest = image_style_path($style_name, $uri);
     if (!file_exists($dest)) {

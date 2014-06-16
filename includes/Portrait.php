@@ -9,7 +9,7 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
   protected $font = 'helvetica';
   protected $frontpage_font = 'helvetica';
 
-  function __construct() {
+  function __construct($disccache = FALSE) {
     parent::__construct('P', 'mm', 'A4', TRUE, 'UTF-8', $disccache);
     $this->SetAutoPageBreak(FALSE);
     $this->SetMargins(0, 0, 0);
