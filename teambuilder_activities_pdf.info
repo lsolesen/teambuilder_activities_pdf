@@ -5,3 +5,4 @@ core = 7.x
 
 dependencies[] = chart
 dependencies[] = libraries
+dependencies[] = teambuilder_activities
