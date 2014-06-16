@@ -99,11 +99,14 @@ Varighed? ' . $duration . '';
     $this->MultiCell($cell_width, 4, t('Instructions'), 0, 'L', false, 1, '', '', true, 0, true);
     $this->SetFont('Helvetica', 'N', 12);
     $this->MultiCell($cell_width, 4, $instruction, 0, 'L', false, 1, '', '', true, 0, true);
-    $this->Ln(2);
-    $this->SetFont('Helvetica', 'B', 14);
-    $this->MultiCell($cell_width, 4, t('Debriefing'), 0, 'L', false, 1, '', '', true, 0, true);
-    $this->SetFont('Helvetica', 'N', 12);
-    $this->MultiCell($cell_width, 4, $debriefing, 0, 'L', false, 1, '', '', true, 0, true);
+
+    if (!empty($debriefing)) {
+      $this->Ln(2);
+      $this->SetFont('Helvetica', 'B', 14);
+      $this->MultiCell($cell_width, 4, t('Debriefing'), 0, 'L', false, 1, '', '', true, 0, true);
+      $this->SetFont('Helvetica', 'N', 12);
+      $this->MultiCell($cell_width, 4, $debriefing, 0, 'L', false, 1, '', '', true, 0, true);
+    }
 
     $this->Image(dirname(__FILE__) . '/../vih_logo.jpg', 8, 261, 50, 0, '', 'http://vih.dk/');
     $this->Image(dirname(__FILE__) . '/../cc-by-sa_340x340.png', 190, 3, 17, 0, '');

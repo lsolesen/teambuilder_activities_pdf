@@ -64,16 +64,18 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
 
       foreach ($activity->field_image[LANGUAGE_NONE] as $image) {
         if ($picture_filename = $this->getPictureFilename($presetname, $image['uri'])) {
-          $size = getimagesize($picture_filename);
-          if ($size[0] < $size[1]) {
+          list($w, $h, $type, $attr) = getimagesize($picture_filename);
+          $ratio = $h/$w;
+
+          if ($w < $h) {
             $orientation = 'portrait';
             if ($no_of_pics <= 2) {
               $pic_width = 80;
-              $new_line = 125;
+              $new_line = round($pic_width * $ratio + 5);
             }
             else {
               $pic_width = 55;
-              $new_line = 80;
+              $new_line = round($pic_width * $ratio + 5);
               if ($count > 6) {
                 break;
               }
@@ -82,11 +84,11 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
             $orientation = 'landscape';
             if ($no_of_pics == 1) {
               $pic_width = 190;
-              $new_line = 130;
+              $new_line = round($pic_width * $ratio + 5);
             }
             else {
               $pic_width = 80;
-              $new_line = 50;
+              $new_line = round($pic_width * $ratio + 5);
               if ($count > 4) {
                 break;
               }
@@ -100,7 +102,6 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
             $width = 0;
             $new_y += $new_line;
           }
-
           $this->Image($picture_filename, $x, $y, $pic_width, 0, '');
           $x += $pic_width + $spacing;
         }
