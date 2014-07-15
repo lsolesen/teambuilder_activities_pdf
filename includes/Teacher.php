@@ -21,12 +21,14 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
     $this->AddPage();
 
     $title = "  " . $activity->title;
-    $description = strip_tags($activity->body[LANGUAGE_NONE][0]['value']);
+    $description = check_markup($activity->body[LANGUAGE_NONE][0]['value'], 'filtered_html');
+    //$description = strip_tags($activity->body[LANGUAGE_NONE][0]['value']);
     $keywords = array();
     foreach ($activity->taxonomy_vocabulary_1 as $taxonomy) {
       $keywords[] = $taxonomy->name;
     }
-    $instruction = strip_tags($activity->field_instruction[LANGUAGE_NONE][0]['value']);
+    $instruction = check_markup($activity->field_instruction[LANGUAGE_NONE][0]['value'], 'filtered_html');
+    //$instruction = strip_tags($activity->field_instruction[LANGUAGE_NONE][0]['value']);
     $debriefing = strip_tags($activity->field_debriefing[LANGUAGE_NONE][0]['value']);
     $url = $base_url. '/node/' . $activity->nid;
 
@@ -56,18 +58,6 @@ class Teambuilder_Pdf_Teacher extends Teambuilder_Pdf_Base {
     $this->SetFont('Helvetica', null, 10);
     $this->MultiCell(0, 5, implode($keywords, ", "), 0, 'L');
 
-    if (!empty($activity->field_image[LANGUAGE_NONE][0]['uri'])) {
-      $x = 10;
-      $y = $this->GetY();
-      $new_y = $y;
-      $presetname = 'activity_landscape';
-      $pic_width = 90;
-      if ($picture_filename = $this->getPictureFilename($presetname, $activity->field_image[LANGUAGE_NONE][0]['uri'])) {
-        $this->Image($picture_filename, $x, $y, $pic_width, 0, '');
-        $this->SetY($new_y + $new_line);
-      }
-    }
-
     $this->setTextColor(0, 0, 0);
 
     $this->SetFillColor(200, 200, 200);
@@ -80,46 +70,138 @@ Hvor mange? ' . $how_many . '
 Materialer? ' . $materials  . '
 Varighed? ' . $duration . '';
 
-    // TODO WHAT SHOULD THIS BE?
-    $cell_width = '';
-
     $this->SetY(40);
-    $this->SetX(105);
+    $this->SetX(10);
     $this->setCellPaddings(4, 4, 4, 4);
-    $this->MultiCell($cell_width, 60, $information, 1, 'L', false);
+    $this->MultiCell(55, 0, $information, 1, 'L', false);
     $this->SetFont('Helvetica', null, 12);
-    $this->setCellPaddings(0, 0, 0, 0);
-    $this->Ln(2);
-    $this->SetFont('Helvetica', 'B', 14);
-    $this->MultiCell($cell_width, 4, t('Description'), 0, 'L', false, 1, '', '', true, 0, true);
-    $this->SetFont('Helvetica', 'N', 12);
-    $this->MultiCell($cell_width, 4, $description, 0, 'L', false, 1, '', '', true, 0, true);
-    $this->Ln(2);
-    $this->SetFont('Helvetica', 'B', 14);
-    $this->MultiCell($cell_width, 4, t('Instructions'), 0, 'L', false, 1, '', '', true, 0, true);
-    $this->SetFont('Helvetica', 'N', 12);
-    $this->MultiCell($cell_width, 4, $instruction, 0, 'L', false, 1, '', '', true, 0, true);
 
+    if (!empty($activity->field_image[LANGUAGE_NONE][0])) {
+      $style = 'activity';
+      $style_array = image_style_load($style);
+      $old_orientation = '';
+      $x = 10;
+      $y = $this->GetY() + 5;
+      $width = 0;
+      $spacing = 3;
+      $count = 0;
+      $picture_rows = 1;
+      $pr_row = 0;
+      $no_of_pics = count($activity->field_image[LANGUAGE_NONE]);
+      foreach ($activity->field_image[LANGUAGE_NONE] as $image) {
+        $dst = image_style_path($style, $image['uri']);
+
+        if (file_exists($dst) || image_style_create_derivative($style_array, $image['uri'], $dst)) {
+          $file = image_style_path($style, $image['uri']);
+          $size = getimagesize($file);
+          if ($size[0] < $size[1]) {
+            $orientation = 'portrait';
+            if ($no_of_pics <= 2) {
+              $pic_width = 55;
+              $new_line = 45;
+              $no_pr_row = 1;
+            }
+            elseif ($no_of_pics <= 3) {
+              $pic_width = 50;
+              $new_line = 40;
+              $no_pr_row = 1;
+            }
+            else {
+              $pic_width = 26;
+              $new_line = 43;
+              $no_pr_row = 2;
+              if ($count > 8) {
+                break;
+              }
+            }
+          }
+          else {
+            $orientation = 'landscape';
+            $pic_width = 55;
+            $new_line = 20;
+            $no_pr_row = 1;
+            if ($count > 5) {
+              break;
+            }
+          }
+
+          if ($old_orientation != $orientation) {
+            $pr_row = 0;
+            if ($old_orientation == 'landscape') {
+              $new_line += 40;
+            }
+          }
+
+          $width += $pic_width + $spacing;
+
+          if ($pr_row >= $no_pr_row) {
+            $y += $new_line;
+            $x = 10;
+            $picture_rows++;
+            $width = 0;
+            $pr_row = 0;
+          }
+
+          $this->Image($file, $x, $y, $pic_width, 0, '');
+          $x += $pic_width + $spacing;
+
+          if ($no_pr_row == 1) {
+            $y += $new_line;
+            $x = 10;
+          }
+          $pr_row++;
+          $old_orientation = $orientation;
+          $count++;
+        }
+      }
+    }
+
+    // Content
+    $this->setCellPaddings(0, 0, 0, 0);
+
+    // Description
+    $this->Ln(2);
+    $this->SetFont('Helvetica', 'B', 14);
+    $second_column_x = 70;
+    $this->SetY(40);
+    $this->SetX($second_column_x);
+    $this->Cell(0, 4, t('Description'), 0, 1);
+    $this->SetFont('Helvetica', 'N', 12);
+    $this->SetX($second_column_x);
+    $this->writeHTMLCell($w=0, $h=0, $x='', $y='', $description, $border=0, $ln=1, $fill=0, $reseth=true, $align='', $autopadding=true);
+
+    // Instructions
+    $this->Ln(1);
+    $this->SetFont('Helvetica', 'B', 14);
+    $this->SetX($second_column_x);
+    $this->Cell(0, 4, t('Instructions'), 0, 1);
+    $this->SetFont('Helvetica', 'N', 12);
+    $this->SetX($second_column_x);
+    $this->writeHTMLCell($w=0, $h=0, $x='', $y='', $instruction, $border=0, $ln=1, $fill=0, $reseth=true, $align='', $autopadding=true);
+
+    // Debriefing
     if (!empty($debriefing)) {
-      $this->Ln(2);
+      $this->Ln(1);
       $this->SetFont('Helvetica', 'B', 14);
-      $this->MultiCell($cell_width, 4, t('Debriefing'), 0, 'L', false, 1, '', '', true, 0, true);
+      $this->SetX($second_column_x);
+      $this->Cell(0, 4, t('Debriefing'), 0, 1);
       $this->SetFont('Helvetica', 'N', 12);
-      $this->MultiCell($cell_width, 4, $debriefing, 0, 'L', false, 1, '', '', true, 0, true);
+      $this->SetX($second_column_x);
+      $this->writeHtmlCell($w=0, $h=0, $x='', $y='', $debriefing, $border=0, $ln=1, $fill=0, $reseth=true, $align='', $autopadding=true);
     }
 
     $this->Image(dirname(__FILE__) . '/../vih_logo.jpg', 8, 261, 50, 0, '', 'http://vih.dk/');
-    $this->Image(dirname(__FILE__) . '/../cc-by-sa_340x340.png', 190, 3, 17, 0, '');
+    //$this->Image(dirname(__FILE__) . '/../cc-by-sa_340x340.png', 185, 4, 20, 0, '');
 
     $this->SetFont('Helvetica', null, 8);
     $this->setY(280);
     $this->setX(7);
     $this->MultiCell(50, 8, $url, 0, 'C');
 
-    $qr_file = $this->getBarcodePath($url, 200, 200);
+    $qr_file = $this->getBarcodePath($url, 150, 150);
 
     if ($qr_file !== false && file_exists($qr_file)) {
-      $this->Image($qr_file, 160, 245, 45, 0, '');
+      $this->Image($qr_file, 182, 3, 24, 0, '');
     }
   }
 }

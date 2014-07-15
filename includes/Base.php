@@ -71,11 +71,11 @@ abstract class Teambuilder_Pdf_Base extends TCPDF {
    *
    * @return string or false
    */
-  protected function getBarcodePath($url, $height, $width) {
+  protected function getBarcodePath($url, $height, $height) {
     $chart = array(
       '#chart_id' => 'teambuilder_activity',
       '#type' => CHART_TYPE_QR,
-      '#size' => chart_size(200, 200) 
+      '#size' => chart_size($height, $height)
     );
         
     $chart['#data'][] = '';

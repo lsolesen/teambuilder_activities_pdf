@@ -115,7 +115,6 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
     $this->MultiCell(0, 8, $description, 0, 'L', false, 1, '', '', true, 0, true);
 
     $this->Image(dirname(__FILE__) . '/../vih_logo.jpg', 8, 261, 50, 0, '', 'http://vih.dk/');
-    $this->Image(dirname(__FILE__) . '/../cc-by-sa_340x340.png', 190, 3, 17, 0, '');
 
     $this->SetFont('Helvetica', null, 8);
     $this->setY(280);
@@ -124,7 +123,11 @@ class Teambuilder_Pdf_Portrait extends Teambuilder_Pdf_Base {
 
     $qr_file = $this->getBarcodePath($url, 200, 200);
     if ($qr_file !== false && file_exists($qr_file)) {
-      $this->Image($qr_file, 160, 245, 45, 0, '');
+      $this->Image($qr_file, 182, 3, 24, 0, '');
     }
+
+    $this->SetLineWidth(1.6);
+    $this->SetDrawColor(185);
+    $this->Circle(190, 292, 45);
   }
 }
